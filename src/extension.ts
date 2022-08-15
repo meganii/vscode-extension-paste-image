@@ -1,6 +1,23 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { promisify } from "util";
+import { exec } from "child_process";
+import * as path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	cloud_name: vscode.workspace.getConfiguration().get('pasteImage.cloudinaryName'),
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	api_key: vscode.workspace.getConfiguration().get('pasteImage.cloudinaryAPIKey'),
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	api_secret: vscode.workspace.getConfiguration().get('pasteImage.cloudinaryAPISecret'),
+	secure: true
+});
+
+const execPromise = promisify(exec);
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -17,9 +34,42 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from vscode-extension-paste-image!');
+		main();
 	});
 
 	context.subscriptions.push(disposable);
+}
+
+async function main() {
+	const basepath = path.join(__dirname, '../');
+	const filename = new Date().toLocaleString('sv').replace(/\D/g,'') + '.png';
+	const imgpath = path.join(basepath, filename);
+
+	const { stdout, stderr } = await execPromise(`powershell.exe "(Get-Clipboard -Format Image).Save('${imgpath}')"`);
+	console.log(`stdout: ${stdout}`);
+	console.error(`stderr: ${stderr}`);
+
+	const result = await cloudinary.uploader.upload(imgpath);
+	let cloudinaryURL :string = result?.secure_url || '';
+
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		vscode.window.showErrorMessage('no editor');
+		return;
+	}
+
+	editor.edit(edit => {
+		let current = (editor as vscode.TextEditor).selection;
+		if (current.isEmpty) {
+			edit.insert(current.start, toMarkdown(cloudinaryURL));
+		} else {
+			edit.replace(current, toMarkdown(cloudinaryURL));
+		}
+	});
+}
+
+function toMarkdown(filepath: string) {
+	return `![ALT](${filepath})`;
 }
 
 // this method is called when your extension is deactivated
