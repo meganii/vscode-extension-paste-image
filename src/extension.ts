@@ -45,9 +45,14 @@ async function main() {
 	const filename = new Date().toLocaleString('sv').replace(/\D/g,'') + '.png';
 	const imgpath = path.join(basepath, filename);
 
-	const { stdout, stderr } = await execPromise(`powershell.exe "(Get-Clipboard -Format Image).Save('${imgpath}')"`);
-	console.log(`stdout: ${stdout}`);
-	console.error(`stderr: ${stderr}`);
+	try {
+		const { stdout, stderr } = await execPromise(`powershell.exe "(Get-Clipboard -Format Image).Save('${imgpath}')"`);
+		console.log(`imgpath: ${imgpath}`);
+		console.log(`stdout: ${stdout}`);
+		console.error(`stderr: ${stderr}`);
+	} catch (error) {
+		vscode.window.showErrorMessage('Cannot save image');
+	}
 
 	const result = await cloudinary.uploader.upload(imgpath);
 	let cloudinaryURL :string = result?.secure_url || '';
