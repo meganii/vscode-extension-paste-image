@@ -2,7 +2,7 @@
   "name": "vscode-extension-paste-image",
   "displayName": "vscode-extension-paste-image",
   "description": "Easy to paste image for VSCode",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.70.0"
   },
@@ -10,14 +10,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:vscode-extension-paste-image.helloWorld"
+    "onCommand:vscode-extension-paste-image.pasteImage"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-extension-paste-image.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-extension-paste-image.pasteImage",
+        "title": "Paste Image"
       }
     ]
   },
