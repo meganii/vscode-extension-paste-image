@@ -51,6 +51,8 @@ async function main() {
 
 	const result = await cloudinary.uploader.upload(imgpath);
 	let cloudinaryURL :string = result?.secure_url || '';
+	const width = result?.width;
+	const height = result?.height;
 
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
@@ -61,15 +63,15 @@ async function main() {
 	editor.edit(edit => {
 		let current = (editor as vscode.TextEditor).selection;
 		if (current.isEmpty) {
-			edit.insert(current.start, toMarkdown(cloudinaryURL));
+			edit.insert(current.start, toMarkdown(cloudinaryURL, width, height));
 		} else {
-			edit.replace(current, toMarkdown(cloudinaryURL));
+			edit.replace(current, toMarkdown(cloudinaryURL, width, height));
 		}
 	});
 }
 
-function toMarkdown(filepath: string) {
-	return `![ALT](${filepath})`;
+function toMarkdown(filepath: string, width:number, height:number) {
+	return `![ALT](${filepath} "=${width}x${height}")`;
 }
 
 // this method is called when your extension is deactivated
