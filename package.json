@@ -14,6 +14,29 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Paste Image Configuration",
+      "properties": {
+        "pasteImage.path": {
+          "type": "string",
+          "default": "${currentFileDir}",
+          "description": "The destination to save image file.You can use variable ${currentFileDir} and ${projectRoot}. ${currentFileDir} will be replace by the path of directory that contain current editing file. ${projectRoot} will be replace by path of the project opened in vscode."
+        },
+        "pasteImage.cloudinaryName": {
+          "type": "string",
+          "description": "Type your Cloudinary username when you use Cloudinary."
+        }, 
+        "pasteImage.cloudinaryAPIKey": {
+          "type": "string",
+          "description": "Type your Cloudinary API Key when you use Cloudinary."
+        },
+        "pasteImage.cloudinaryAPISecret": {
+          "type": "string",
+          "description": "Type your Cloudinary API Secret when you use Cloudinary."
+        }
+      }
+    },
     "commands": [
       {
         "command": "vscode-extension-paste-image.pasteImage",

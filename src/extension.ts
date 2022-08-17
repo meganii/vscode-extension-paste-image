@@ -41,7 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function main() {
-	const basepath = path.join(__dirname, '../');
+	const basepath :string = vscode.workspace.getConfiguration().get('pasteImage.path') || path.join(__dirname, '../');
+	console.log(basepath);
 	const filename = new Date().toLocaleString('sv').replace(/\D/g,'') + '.png';
 	const imgpath = path.join(basepath, filename);
 
