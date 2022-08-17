@@ -10,7 +10,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:vscode-extension-paste-image.pasteImage"
+    "onCommand:vscode-extension-paste-image.pasteImage",
+    "onCommand:vscode-extension-paste-image.insertGyazo"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -26,7 +27,7 @@
         "pasteImage.cloudinaryName": {
           "type": "string",
           "description": "Type your Cloudinary username when you use Cloudinary."
-        }, 
+        },
         "pasteImage.cloudinaryAPIKey": {
           "type": "string",
           "description": "Type your Cloudinary API Key when you use Cloudinary."
@@ -41,6 +42,10 @@
       {
         "command": "vscode-extension-paste-image.pasteImage",
         "title": "Paste Image"
+      },
+      {
+        "command": "vscode-extension-paste-image.insertGyazo",
+        "title": "Insert Gyazo"
       }
     ]
   },
@@ -71,6 +76,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "cloudinary": "^1.30.1"
+    "cloudinary": "^1.30.1",
+    "got": "^12.3.1"
   }
 }

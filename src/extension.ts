@@ -5,6 +5,7 @@ import { promisify } from "util";
 import { exec } from "child_process";
 import * as path from 'path';
 import { v2 as cloudinary } from 'cloudinary';
+import got from 'got';
 
 cloudinary.config({
 	// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -36,8 +37,42 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World from vscode-extension-paste-image!');
 		main();
 	});
-
 	context.subscriptions.push(disposable);
+
+	let disposable2 = vscode.commands.registerCommand('vscode-extension-paste-image.insertGyazo', async () => {
+		vscode.window.showInformationMessage('Insert Gyazo!!!!');
+		const clipboardText = await vscode.env.clipboard.readText();
+		const reg = new RegExp('https://gyazo.com/([0-9a-zA-Z]*)');
+		if (reg.test(clipboardText)) {
+			console.log(clipboardText);
+			const m = clipboardText.match(reg);
+			if (m) {
+				console.log(m[1]);
+				const api = 'https://api.gyazo.com/api/oembed';
+				const params = new URLSearchParams();
+				params.append('url', m[0]);
+				const data : {url: string, height: number, width: number} = await got(`${api}?${params}`).json();
+				console.log(data);
+
+				let editor = vscode.window.activeTextEditor;
+				if (!editor) {
+					vscode.window.showErrorMessage('no editor');
+					return;
+				}
+
+				editor.edit(edit => {
+					let current = (editor as vscode.TextEditor).selection;
+					if (current.isEmpty) {
+						edit.insert(current.start, toMarkdown(data.url, data.width, data.height));
+					} else {
+						edit.replace(current, toMarkdown(data.url, data.width, data.height));
+					}
+				});
+			}
+		}
+	});
+	context.subscriptions.push(disposable2);
+
 }
 
 async function main() {
