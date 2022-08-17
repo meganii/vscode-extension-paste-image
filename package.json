@@ -41,11 +41,11 @@
     "commands": [
       {
         "command": "vscode-extension-paste-image.pasteImage",
-        "title": "Paste Image"
+        "title": "Insert from Clipboard via Cloud"
       },
       {
         "command": "vscode-extension-paste-image.insertGyazo",
-        "title": "Insert Gyazo"
+        "title": "Insert from GyazoURL"
       }
     ]
   },

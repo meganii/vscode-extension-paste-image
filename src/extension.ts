@@ -19,6 +19,7 @@ cloudinary.config({
 
 const execPromise = promisify(exec);
 
+const gyazoRegExp = new RegExp('https://gyazo.com/([0-9a-zA-Z]*)');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -35,47 +36,18 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from vscode-extension-paste-image!');
-		main();
+		insertFromClipboardWithCloud();
 	});
 	context.subscriptions.push(disposable);
 
 	let disposable2 = vscode.commands.registerCommand('vscode-extension-paste-image.insertGyazo', async () => {
 		vscode.window.showInformationMessage('Insert Gyazo!!!!');
-		const clipboardText = await vscode.env.clipboard.readText();
-		const reg = new RegExp('https://gyazo.com/([0-9a-zA-Z]*)');
-		if (reg.test(clipboardText)) {
-			console.log(clipboardText);
-			const m = clipboardText.match(reg);
-			if (m) {
-				console.log(m[1]);
-				const api = 'https://api.gyazo.com/api/oembed';
-				const params = new URLSearchParams();
-				params.append('url', m[0]);
-				const data : {url: string, height: number, width: number} = await got(`${api}?${params}`).json();
-				console.log(data);
-
-				let editor = vscode.window.activeTextEditor;
-				if (!editor) {
-					vscode.window.showErrorMessage('no editor');
-					return;
-				}
-
-				editor.edit(edit => {
-					let current = (editor as vscode.TextEditor).selection;
-					if (current.isEmpty) {
-						edit.insert(current.start, toMarkdown(data.url, data.width, data.height));
-					} else {
-						edit.replace(current, toMarkdown(data.url, data.width, data.height));
-					}
-				});
-			}
-		}
+		insertFromGyazo();
 	});
 	context.subscriptions.push(disposable2);
-
 }
 
-async function main() {
+async function insertFromClipboardWithCloud() {
 	const basepath :string = vscode.workspace.getConfiguration().get('pasteImage.path') || path.join(__dirname, '../');
 	console.log(basepath);
 	const filename = new Date().toLocaleString('sv').replace(/\D/g,'') + '.png';
@@ -95,6 +67,32 @@ async function main() {
 	const width = result?.width;
 	const height = result?.height;
 
+	insertText(cloudinaryURL, width, height);
+}
+
+async function insertFromGyazo() {
+	const clipboardText = await vscode.env.clipboard.readText();
+	if (!gyazoRegExp.test(clipboardText)) { return; }
+	console.log(clipboardText);
+	
+	const m = clipboardText.match(gyazoRegExp);
+	if (!m) { return; }
+
+	console.log(m[1]);
+	const api = 'https://api.gyazo.com/api/oembed';
+	const params = new URLSearchParams();
+	params.append('url', m[0]);
+	const data : {url: string, height: number, width: number} = await got(`${api}?${params}`).json();
+	console.log(data);
+
+	insertText(data.url, data.width, data.height);
+}
+
+function toMarkdown(filepath: string, width:number, height:number) {
+	return `![ALT](${filepath} "=${width}x${height}")`;
+}
+
+function insertText(url:string, width:number, height:number) {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
 		vscode.window.showErrorMessage('no editor');
@@ -104,15 +102,11 @@ async function main() {
 	editor.edit(edit => {
 		let current = (editor as vscode.TextEditor).selection;
 		if (current.isEmpty) {
-			edit.insert(current.start, toMarkdown(cloudinaryURL, width, height));
+			edit.insert(current.start, toMarkdown(url, width, height));
 		} else {
-			edit.replace(current, toMarkdown(cloudinaryURL, width, height));
+			edit.replace(current, toMarkdown(url, width, height));
 		}
 	});
-}
-
-function toMarkdown(filepath: string, width:number, height:number) {
-	return `![ALT](${filepath} "=${width}x${height}")`;
 }
 
 // this method is called when your extension is deactivated
